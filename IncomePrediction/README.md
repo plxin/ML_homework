@@ -11,7 +11,7 @@
 
 ![NUZudS.png](https://s1.ax1x.com/2020/06/23/NUZudS.png)
 
-下面时这个结果的混淆矩阵，召回率为0.868
+下面是这个结果的混淆矩阵，召回率为0.868
 
 ![NUZQiQ.png](https://s1.ax1x.com/2020/06/23/NUZQiQ.png)
 
@@ -21,3 +21,4 @@
 
 ![NNZFh9.png](https://s1.ax1x.com/2020/06/23/NNZFh9.png)
 
+经过比较，自己训练的模型和sklearn训练的模型相差不大，说明自己训练的模型效果还不错。
