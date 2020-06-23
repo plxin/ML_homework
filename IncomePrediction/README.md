@@ -7,8 +7,13 @@
 
 自己的模型最好的效果如下图所示：
 
-![NNZmnK.png](https://s1.ax1x.com/2020/06/23/NNZmnK.png)
-![NNZZX6.png](https://s1.ax1x.com/2020/06/23/NNZZX6.png)
+精度达到了0.922
+
+![NUZudS.png](https://s1.ax1x.com/2020/06/23/NUZudS.png)
+
+下面时这个结果的混淆矩阵，召回率为0.868
+
+![NUZQiQ.png](https://s1.ax1x.com/2020/06/23/NUZQiQ.png)
 
 
 
