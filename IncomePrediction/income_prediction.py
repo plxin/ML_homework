@@ -247,7 +247,7 @@ def model(X, theta):
 # 
 # $$model(X,theta) = h_\theta(x)$$
 
-# In[24]:
+# In[58]:
 
 
 def cost(X, y, theta):
@@ -256,7 +256,7 @@ def cost(X, y, theta):
     return (np.sum(left - right) / len(X))
 
 
-# In[25]:
+# In[59]:
 
 
 cost(X_train,y_train,theta)
@@ -271,7 +271,7 @@ cost(X_train,y_train,theta)
 # 
 # $$\frac{\partial J(\theta)}{\partial\theta_j} = (\frac{1}{m}\sum_{i=1}^{m}(h_\theta(x_i)-y_i)x_i^j)+\frac{\lambda}{m}\theta_j$$
 
-# In[26]:
+# In[60]:
 
 
 def gradient(X, y, theta):
@@ -286,7 +286,7 @@ def gradient(X, y, theta):
 
 # #### 几种停止策略
 
-# In[27]:
+# In[73]:
 
 
 STOP_ITER = 0 # 以迭代次数为准
@@ -304,7 +304,7 @@ def stopCriterion(type, value, threshold):
 
 # #### 梯度下降求解
 
-# In[28]:
+# In[74]:
 
 
 import time
@@ -313,16 +313,13 @@ def descent(X, y, theta, batchSize, stopType, thresh, alpha):
     init_time = time.time()
     i = 0  # 迭代次数
     k = 0  # batch
-    # X, y = shuffleData(data)
     grad = np.zeros(theta.shape)  # 计算的梯度
     costs = [cost(X, y, theta)]  # 损失值
-    
     while True:
         grad = gradient(X[k:k+batchSize], y[k:k+batchSize], theta)
-        k += batchSize  # 取batch数量个数据
-        if k >= n:
+        k += batchSize  # 取batchSize个数据
+        if k >= n:      # n是训练样本个数
             k = 0
-            # X, y = shuffleData(data)  # 重新洗牌
         theta = theta - alpha*grad  # 参数更新
         costs.append(cost(X, y, theta))  # 计算新的损失
         i += 1
@@ -339,7 +336,7 @@ def descent(X, y, theta, batchSize, stopType, thresh, alpha):
     return theta, i-1, costs, grad, time.time() - init_time
 
 
-# In[29]:
+# In[75]:
 
 
 def runExpe(X, y, theta, batchSize, stopType, thresh, alpha):
@@ -376,33 +373,21 @@ def runExpe(X, y, theta, batchSize, stopType, thresh, alpha):
 # 
 # #### 2.Mini-batch
 
-# In[30]:
+# In[76]:
 
 
 n = 3000
 
 
-# In[31]:
+# In[78]:
 
 
-runExpe(X_train, y_train, theta, 32, STOP_ITER, thresh=500, alpha=0.01)
-
-
-# In[32]:
-
-
-theta0 = runExpe(X_train, y_train, theta, 32, STOP_ITER, thresh=50000, alpha=0.0000001)
-
-
-# In[33]:
-
-
-theta0
+runExpe(X_train, y_train, theta, 30, STOP_ITER, thresh=500, alpha=0.01)
 
 
 # ### 精度预测
 
-# In[402]:
+# In[83]:
 
 
 def predict(X, theta):
@@ -410,16 +395,19 @@ def predict(X, theta):
     return [1 if x>= 0.5 else 0 for x in model(X, theta)]
 
 
-# In[464]:
+# In[84]:
 
 
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 
-y_pred = predict(X_test, theta0)
 
+# In[85]:
+
+
+theta0 = runExpe(X_train, y_train, theta, 30, STOP_ITER, thresh=50000, alpha=0.0000001)
+y_pred = predict(X_test, theta0)
 accuracy_score(y_test, y_pred)
-# classification_report(y_test, y_pred)
 
 
 # ### 实验优化
@@ -430,21 +418,19 @@ accuracy_score(y_test, y_pred)
 # 
 # 利用sklearn的一个函数preprocessing对数据进行预处理，使得生成的数据都在一定范围内波动，可以与没有进行预处理的数据最终的结果进行对比
 
-# In[410]:
+# In[94]:
 
 
 from sklearn import preprocessing as pp
 
 dealed_data = data.copy()
-print(type(dealed_data))
 dealed_data = pp.scale(data, axis=0)
-print(type(dealed_data))
 dealed_data[:5]
 
 
 # 标准化后数据格式变成了ndarray，不方便观察标准化后结果，给变回来变成dataframe
 
-# In[411]:
+# In[95]:
 
 
 dealed_data = pd.DataFrame(dealed_data)
@@ -453,7 +439,7 @@ dealed_data.head()
 
 # 因为前面用sklearn的一个函数对数据进行标准化的时候把class的值也改变了，所以这里给改回来
 
-# In[412]:
+# In[96]:
 
 
 dealed_data[58][dealed_data[58]<0]=0
@@ -462,7 +448,7 @@ dealed_data[0] = 1
 dealed_data.head()
 
 
-# In[413]:
+# In[97]:
 
 
 # 预处理过的数据
@@ -481,110 +467,94 @@ print("Number transactions test dataset: ", len(dealed_X_test))
 print("Total number of transactions: ", len(dealed_X_train)+len(dealed_X_test))
 
 
-# In[414]:
+# In[98]:
 
 
 dealed_X_train[:5]
 
 
-# In[415]:
-
-
-# theta2 = np.zeros([1,58])
-# theta2 = pd.DataFrame(theta)
-# theta2.head()
-# theta2.shape
-
-
-# In[420]:
+# In[100]:
 
 
 cost(dealed_X_train, dealed_y_train, theta)
 
 
-# In[421]:
+# In[102]:
 
 
-theta1 = runExpe(dealed_X_train, dealed_y_train, theta, 32, STOP_ITER, thresh=500, alpha=0.01)
-
-
-# In[422]:
-
-
-print(theta1)
-
-
-# In[423]:
-
-
+theta1 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=500, alpha=0.01)
 y_pred = predict(dealed_X_test, theta1)
-# y_pred = ()
-# print(y_pred)
-# print(y_test)
 accuracy_score(dealed_y_test, y_pred)
-# classification_report(y_test, y_pred)
 
 
-# In[452]:
+# In[114]:
 
 
-theta6 = runExpe(dealed_X_train, dealed_y_train, theta, 32, STOP_ITER, thresh=500, alpha=0.001)
+theta6 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=500, alpha=0.001)
 y_pred = predict(dealed_X_test, theta6)
 accuracy_score(dealed_y_test, y_pred)
 
 
-# In[470]:
+# In[104]:
 
 
-theta9 = runExpe(dealed_X_train, dealed_y_train, theta, 32, STOP_ITER, thresh=5000, alpha=1)
+theta9 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=5000, alpha=1)
 y_pred = predict(dealed_X_test, theta9)
 accuracy_score(dealed_y_test, y_pred)
 
 
-# In[471]:
+# In[105]:
 
 
-theta10 = runExpe(dealed_X_train, dealed_y_train, theta, 32, STOP_ITER, thresh=5000, alpha=0.1)
+theta10 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=5000, alpha=0.1)
 y_pred = predict(dealed_X_test, theta10)
 accuracy_score(dealed_y_test, y_pred)
 
 
-# In[472]:
+# In[106]:
 
 
-theta11 = runExpe(dealed_X_train, dealed_y_train, theta, 32, STOP_ITER, thresh=5000, alpha=0.01)
+theta11 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=5000, alpha=0.01)
 y_pred = predict(dealed_X_test, theta11)
 accuracy_score(dealed_y_test, y_pred)
 
 
-# In[453]:
+# In[107]:
 
 
-theta6 = runExpe(dealed_X_train, dealed_y_train, theta, 32, STOP_ITER, thresh=5000, alpha=0.001)
+theta6 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=5000, alpha=0.001)
 y_pred = predict(dealed_X_test, theta6)
 accuracy_score(dealed_y_test, y_pred)
 
 
-# In[473]:
+# In[108]:
 
 
-theta12 = runExpe(dealed_X_train, dealed_y_train, theta, 32, STOP_ITER, thresh=5000, alpha=0.0001)
+theta12 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=5000, alpha=0.0001)
 y_pred = predict(dealed_X_test, theta12)
 accuracy_score(dealed_y_test, y_pred)
 
 
-# In[424]:
+# In[109]:
 
 
-theta2 = runExpe(dealed_X_train, dealed_y_train, theta, 32, STOP_ITER, thresh=5000, alpha=0.01)
+theta14 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=5000, alpha=0.00001)
+y_pred = predict(dealed_X_test, theta14)
+accuracy_score(dealed_y_test, y_pred)
+
+
+# In[115]:
+
+
+theta2 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=5000, alpha=0.01)
 y_pred = predict(dealed_X_test, theta2)
 accuracy_score(dealed_y_test, y_pred)
 
 
-# In[468]:
+# In[116]:
 
 
-theta8 = runExpe(dealed_X_train, dealed_y_train, theta, 32, STOP_ITER, thresh=50000, alpha=0.01)
+theta8 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=50000, alpha=0.01)
 y_pred = predict(dealed_X_test, theta8)
 accuracy_score(dealed_y_test, y_pred)
 
@@ -592,30 +562,30 @@ accuracy_score(dealed_y_test, y_pred)
 # In[427]:
 
 
-theta3 = runExpe(dealed_X_train, dealed_y_train, theta, 32, STOP_ITER, thresh=5000, alpha=0.1)
+theta3 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=5000, alpha=0.1)
 y_pred = predict(dealed_X_test, theta3)
 accuracy_score(dealed_y_test, y_pred)
 
 
-# In[430]:
+# In[110]:
 
 
-theta4 = runExpe(dealed_X_train, dealed_y_train, theta, 32, STOP_ITER, thresh=10000, alpha=0.1)
+theta4 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=10000, alpha=0.1)
 y_pred = predict(dealed_X_test, theta4)
 accuracy_score(dealed_y_test, y_pred)
 
 
-# In[431]:
+# In[111]:
 
 
-theta5 = runExpe(dealed_X_train, dealed_y_train, theta, 32, STOP_ITER, thresh=50000, alpha=0.1)
+theta5 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=50000, alpha=0.1)
 y_pred = predict(dealed_X_test, theta5)
 accuracy_score(dealed_y_test, y_pred)
 
 
 # #### 混淆矩阵
 
-# In[385]:
+# In[112]:
 
 
 def plot_confusion_matrix(cm, classes, title = 'Confusion matrix', cmap = plt.cm.Blues):
@@ -636,7 +606,7 @@ def plot_confusion_matrix(cm, classes, title = 'Confusion matrix', cmap = plt.cm
     plt.xlabel('Predict label')
 
 
-# In[437]:
+# In[113]:
 
 
 import itertools
@@ -656,4 +626,10 @@ plot_confusion_matrix(cnf_matrix,
                      classes=class_names,
                      title = 'Confusion matrix')
 plt.show()
+
+
+# In[ ]:
+
+
+
 
