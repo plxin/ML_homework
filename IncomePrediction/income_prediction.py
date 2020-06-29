@@ -1,164 +1,28 @@
 #!/usr/bin/env python
 # coding: utf-8
-
-# ### 逻辑回归
-# 
-# 目标：建立分类器，求解出57个参数
-# 
-# 设定阈值：根据阈值判断收入是否大于50k
-# 
-# #### 公式推导：
-# 
-# sigmoid函数：
-# 
-# $$g(z)=\frac{1}{1+e^ {-z}} $$
-# 
-# 根据线性回归中的预测函数$h_\theta(x)$得到一个预测值
-# 
-# $$h_\theta(x)=\theta_0+\theta_1x_1+\theta_2x_2+...$$
-# 
-# $$h_\theta(x)=\sum_{i=0}^{m}{\theta_ix_i}=\theta^Tx$$
-# 
-# 再将$h_\theta(x)$带入sigmoid函数里,就可以完成有预测值到概率的转换，即完成分类任务
-# 
-# 新的预测函数$h_\theta(x)$为：
-# 
-# $$h_\theta(x)=g(\theta^Tx)=\frac{1}{1+e^{-\theta^Tx}}$$
-# 
-# 
-# 这是一个二分类任务，所以概率可以表示为：
-# 
-# $$ p(y=1|x;\theta) = h_\theta(x)$$
-# 
-# $$p(y=0|x;\theta)=1-h_\theta(x)$$ 
-# 
-# 上面两个式子整合在一起，可以得到
-# 
-# $$p(y|x;\theta)=(h_\theta(x))^y(1-h_\theta(x))^{1-y}$$
-# 
-# 得到似然函数
-# 
-# $$L(\theta)=\prod_{i=1}^{m}{p(y_i|x;\theta)}=\prod_{i=1}^{m}{(h_\theta(x))^{y_i}(1-h_\theta(x))^{1-y_i}}$$
-# 
-# 再对数似然得到：
-# 
-# $$l(\theta)=logL(\theta)=\sum_{i=1}^{m}{(y_ilogh_\theta(x_i)+(1-y_i)log(1-h_\theta(x_i)))}$$
-# 
-# 
-# 根据极大似然估计，要求最大值，相当于梯度上升，但是要用梯度下降来解决问题，所以引入$J(\theta)$
-# 
-# $$J(\theta) = -\frac{1}{m}l(\theta)$$
-# 
-# 引入正则化参数，使用L2正则化：
-# 
-# $$J(\theta) = -\frac{1}{m}l(\theta)+\frac{\lambda}{2m}\sum_{j=1}^{n}{\theta_{j}^2}$$
-# 
-# 即：
-# 
-# $$J(\theta) = -\frac{1}{m}\sum_{i=1}^{m}{(y_ilogh_\theta(x_i)+(1-y_i)log(1-h_\theta(x_i)))}+\frac{\lambda}{2m}\sum_{j=1}^{n}{\theta_{j}^2}$$
-# 
-# 然后在$J(\theta)$中对$\theta$求偏导，结果为：
-# 
-# 未引入正则化参数时：
-# 
-# $$\frac{\partial J(\theta)}{\partial\theta_j} = \frac{1}{m}\sum_{i=1}^{m}(h_\theta(x_i)-y_i)x_i^j$$
-# 
-# 引入正则化参数$\lambda$后：
-# 
-# $$\frac{\partial J(\theta)}{\partial\theta_j} = (\frac{1}{m}\sum_{i=1}^{m}(h_\theta(x_i)-y_i)x_i^j)+\frac{\lambda}{m}\theta_j$$
-# 
-# $x_i^j$  :其中i表示第i个样本，j表示该样本的第j个特征
-# 
-# 
-# 最后就可以进行参数更新了
-# 
-# 未引入正则化参数时：
-# 
-# $$\theta_j=\theta_j-\alpha\frac{1}{m}\sum_{i=1}^{m}(h_\theta(x_i)-y_i)x_i^j$$
-# 
-# 引入正则化参数$\lambda$后：
-# 
-# $$\theta_j=\theta_j-\alpha\frac{1}{m}\sum_{i=1}^{m}((h_\theta(x_i)-y_i)x_i^j+\frac{\lambda}{m}\theta_j)$$
-# 
-# 式子中$\alpha$表示学习率或步长
-# 
-# $\frac{1}{m}\sum_{i=1}^{m}(h_\theta(x_i)-y_i)x_i^j$表示更新的方向
-# 
-# 步长* 方向=更新的值
-# 
-# 
-
-# ### 要完成的模块
-# 
-# 0.数据切分:分为测试集（3000）和验证集（1000）
-# 
-# 1.sigmoid：映射到概率的函数
-# 
-# 2.model：返回预测结果
-# 
-# 3.cost：根据参数计算损失
-# 
-# 4.gradient：计算每个参数的梯度方向
-# 
-# 5.descent：进行参数更新
-# 
-# 6.accuracy：计算精度
-
-# In[12]:
-
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib as mpl
-get_ipython().run_line_magic('matplotlib', 'inline')
-
-
-# In[13]:
-
-
+# get_ipython().run_line_magic('matplotlib', 'inline')
 import os
+
+
 path = 'income.csv'
 data = pd.read_csv(path, header = None)
-
-data.head()
-
-
-# In[14]:
-
-
-data.shape
 
 
 # 因为这个数据中ID没啥用，所以为了方便处理，将ID那一列置为1，作为第一个特征，方便确定$\theta_0$
 
-# In[15]:
-
-
 data[[0]] = data[[0]] / data[[0]]
 data.head()
 
-
-# In[16]:
-
-
-count_classes = pd.value_counts(data[58], sort = True).sort_index()
-count_classes.plot(kind = 'bar')# kind = 'bar',表示画条形图
-plt.title("income > 50k")
-plt.xlabel("F or T")
-plt.ylabel("Frequency")
-
-
-# 可以发现样本中收入大于60k和小于的差距不是特别悬殊，故暂时不对样本进行均衡处理
-# 
-# 均衡处理方案：下采样（同样少）、过采样（同样多）
-
-# #### 0.数据切分
-# 
-# 利用sklearn中的train_test_split函数
-
-# In[17]:
+# count_classes = pd.value_counts(data[58], sort = True).sort_index()
+# count_classes.plot(kind = 'bar')# kind = 'bar',表示画条形图
+# plt.title("income > 50k")
+# plt.xlabel("F or T")
+# plt.ylabel("Frequency")
 
 
 Data = data.values 
@@ -170,85 +34,36 @@ from sklearn.model_selection import train_test_split
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 0)
 
-print("Number transactions train dataset: ", len(X_train))
-print("Number transactions test dataset: ", len(X_test))
-print("Total number of transactions: ", len(X_train)+len(X_test))
-
-
-# In[18]:
-
-
-X_train[:5]
-
-
-# In[19]:
-
-
-y_train[:5]
-
-
-# 将参数$\theta$初始化
-
-# In[20]:
-
+# print("Number transactions train dataset: ", len(X_train))
+# print("Number transactions test dataset: ", len(X_test))
+# print("Total number of transactions: ", len(X_train)+len(X_test))
+# X_train[:5]
+# y_train[:5]
 
 theta = np.zeros([1,58])
-theta.shape
+# theta.shape
 
 
 # #### 1.sigmoid函数实现
-# 
-# $$g(z)=\frac{1}{1+e^ {-z}} $$
-
-# In[21]:
-
 
 def sigmoid(z):
     return 1. / (1 + np.exp(-z))
 
 
-# In[22]:
 
-
-sns.set_style("whitegrid")
-nums = np.arange(-10, 10, step = 1)
-fig, ax = plt.subplots(figsize=(12, 4))
-ax.plot(nums, sigmoid(nums), 'r')
+# sns.set_style("whitegrid")
+# nums = np.arange(-10, 10, step = 1)
+# fig, ax = plt.subplots(figsize=(12, 4))
+# ax.plot(nums, sigmoid(nums), 'r')
 
 
 # #### 2.model(预测函数)实现
-# 
-# $$ h_\theta(x)=g(\theta^Tx)=\frac{1}{1+e^{-\theta^Tx}}$$
-
-# In[23]:
-
 
 def model(X, theta):
     return sigmoid(np.dot(X,theta.T))
 
 
 # #### 3.损失函数
-# 
-# 将对数似然函数去掉负号
-# 
-# $$Cost(h_\theta(x),y) = -y\log(h_\theta(x))-(1-y)\log(1-h_\theta(x))$$
-# 
-# 另外引入正则化参数后，损失函数变为，使用L2正则化：
-# 
-# 求平均损失：
-# 
-# $$J(\theta)=\frac{1}{m}\sum_{i=1}^{m}{Cost(h_\theta(x_i),y_i)}$$
-# 
-# 另外引入正则化参数后，损失函数变为，使用L2正则化：
-# 
-# $$J(\theta) = -\frac{1}{m}\sum_{i=1}^{m}{(y_ilogh_\theta(x_i)+(1-y_i)log(1-h_\theta(x_i)))}+\frac{\lambda}{2m}\sum_{j=1}^{n}{\theta_{j}^2}$$
-# 
-# 
-# 
-# $$model(X,theta) = h_\theta(x)$$
-
-# In[58]:
-
 
 def cost(X, y, theta):
     left = np.multiply(-y, np.log(model(X, theta)+0.000000001))
@@ -256,23 +71,10 @@ def cost(X, y, theta):
     return (np.sum(left - right) / len(X))
 
 
-# In[59]:
-
-
 cost(X_train,y_train,theta)
 
 
 # #### 4.计算梯度
-# 
-# $$\frac{\partial J}{\partial\theta_j} = -\frac{1}{m}\sum_{i=1}^{m}(y_i-
-# h_\theta(x_i))x_i^j$$
-# 
-# 引入正则化后：
-# 
-# $$\frac{\partial J(\theta)}{\partial\theta_j} = (\frac{1}{m}\sum_{i=1}^{m}(h_\theta(x_i)-y_i)x_i^j)+\frac{\lambda}{m}\theta_j$$
-
-# In[60]:
-
 
 def gradient(X, y, theta):
     grad = np.zeros(theta.shape)
@@ -285,9 +87,6 @@ def gradient(X, y, theta):
 
 
 # #### 几种停止策略
-
-# In[73]:
-
 
 STOP_ITER = 0 # 以迭代次数为准
 STOP_COST = 1 # 以损失值为准
@@ -303,9 +102,6 @@ def stopCriterion(type, value, threshold):
 
 
 # #### 梯度下降求解
-
-# In[74]:
-
 
 import time
 # 梯度下降求解
@@ -334,9 +130,6 @@ def descent(X, y, theta, batchSize, stopType, thresh, alpha):
             break
         
     return theta, i-1, costs, grad, time.time() - init_time
-
-
-# In[75]:
 
 
 def runExpe(X, y, theta, batchSize, stopType, thresh, alpha):
@@ -373,41 +166,27 @@ def runExpe(X, y, theta, batchSize, stopType, thresh, alpha):
 # 
 # #### 2.Mini-batch
 
-# In[76]:
-
 
 n = 3000
 
 
-# In[78]:
 
-
-runExpe(X_train, y_train, theta, 30, STOP_ITER, thresh=500, alpha=0.01)
+# runExpe(X_train, y_train, theta, 30, STOP_ITER, thresh=500, alpha=0.01)
 
 
 # ### 精度预测
-
-# In[83]:
-
 
 def predict(X, theta):
     # 阈值设定为0.5，概率大于0.5预测值为1，小于0.5则为0
     return [1 if x>= 0.5 else 0 for x in model(X, theta)]
 
-
-# In[84]:
-
-
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 
 
-# In[85]:
-
-
-theta0 = runExpe(X_train, y_train, theta, 30, STOP_ITER, thresh=50000, alpha=0.0000001)
-y_pred = predict(X_test, theta0)
-accuracy_score(y_test, y_pred)
+# theta0 = runExpe(X_train, y_train, theta, 30, STOP_ITER, thresh=50000, alpha=0.0000001)
+# y_pred = predict(X_test, theta0)
+# accuracy_score(y_test, y_pred)
 
 
 # ### 实验优化
@@ -418,19 +197,15 @@ accuracy_score(y_test, y_pred)
 # 
 # 利用sklearn的一个函数preprocessing对数据进行预处理，使得生成的数据都在一定范围内波动，可以与没有进行预处理的数据最终的结果进行对比
 
-# In[94]:
-
-
 from sklearn import preprocessing as pp
 
 dealed_data = data.copy()
 dealed_data = pp.scale(data, axis=0)
-dealed_data[:5]
+# dealed_data[:5]
 
 
 # 标准化后数据格式变成了ndarray，不方便观察标准化后结果，给变回来变成dataframe
 
-# In[95]:
 
 
 dealed_data = pd.DataFrame(dealed_data)
@@ -439,16 +214,10 @@ dealed_data.head()
 
 # 因为前面用sklearn的一个函数对数据进行标准化的时候把class的值也改变了，所以这里给改回来
 
-# In[96]:
-
-
 dealed_data[58][dealed_data[58]<0]=0
 dealed_data[58][dealed_data[58]>0]=1
 dealed_data[0] = 1
 dealed_data.head()
-
-
-# In[97]:
 
 
 # 预处理过的数据
@@ -462,121 +231,13 @@ from sklearn.model_selection import train_test_split
 
 dealed_X_train, dealed_X_test, dealed_y_train, dealed_y_test = train_test_split(dealed_X, dealed_y, test_size = 0.25, random_state = 0)
 
-print("Number transactions train dataset: ", len(dealed_X_train))
-print("Number transactions test dataset: ", len(dealed_X_test))
-print("Total number of transactions: ", len(dealed_X_train)+len(dealed_X_test))
+# print("Number transactions train dataset: ", len(dealed_X_train))
+# print("Number transactions test dataset: ", len(dealed_X_test))
+# print("Total number of transactions: ", len(dealed_X_train)+len(dealed_X_test))
 
-
-# In[98]:
-
-
-dealed_X_train[:5]
-
-
-# In[100]:
-
+# dealed_X_train[:5]
 
 cost(dealed_X_train, dealed_y_train, theta)
-
-
-# In[102]:
-
-
-theta1 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=500, alpha=0.01)
-y_pred = predict(dealed_X_test, theta1)
-accuracy_score(dealed_y_test, y_pred)
-
-
-# In[114]:
-
-
-theta6 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=500, alpha=0.001)
-y_pred = predict(dealed_X_test, theta6)
-accuracy_score(dealed_y_test, y_pred)
-
-
-# In[104]:
-
-
-theta9 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=5000, alpha=1)
-y_pred = predict(dealed_X_test, theta9)
-accuracy_score(dealed_y_test, y_pred)
-
-
-# In[105]:
-
-
-theta10 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=5000, alpha=0.1)
-y_pred = predict(dealed_X_test, theta10)
-accuracy_score(dealed_y_test, y_pred)
-
-
-# In[106]:
-
-
-theta11 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=5000, alpha=0.01)
-y_pred = predict(dealed_X_test, theta11)
-accuracy_score(dealed_y_test, y_pred)
-
-
-# In[107]:
-
-
-theta6 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=5000, alpha=0.001)
-y_pred = predict(dealed_X_test, theta6)
-accuracy_score(dealed_y_test, y_pred)
-
-
-# In[108]:
-
-
-theta12 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=5000, alpha=0.0001)
-y_pred = predict(dealed_X_test, theta12)
-accuracy_score(dealed_y_test, y_pred)
-
-
-# In[109]:
-
-
-theta14 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=5000, alpha=0.00001)
-y_pred = predict(dealed_X_test, theta14)
-accuracy_score(dealed_y_test, y_pred)
-
-
-# In[115]:
-
-
-theta2 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=5000, alpha=0.01)
-y_pred = predict(dealed_X_test, theta2)
-accuracy_score(dealed_y_test, y_pred)
-
-
-# In[116]:
-
-
-theta8 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=50000, alpha=0.01)
-y_pred = predict(dealed_X_test, theta8)
-accuracy_score(dealed_y_test, y_pred)
-
-
-# In[427]:
-
-
-theta3 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=5000, alpha=0.1)
-y_pred = predict(dealed_X_test, theta3)
-accuracy_score(dealed_y_test, y_pred)
-
-
-# In[110]:
-
-
-theta4 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=10000, alpha=0.1)
-y_pred = predict(dealed_X_test, theta4)
-accuracy_score(dealed_y_test, y_pred)
-
-
-# In[111]:
-
 
 theta5 = runExpe(dealed_X_train, dealed_y_train, theta, 30, STOP_ITER, thresh=50000, alpha=0.1)
 y_pred = predict(dealed_X_test, theta5)
@@ -585,7 +246,6 @@ accuracy_score(dealed_y_test, y_pred)
 
 # #### 混淆矩阵
 
-# In[112]:
 
 
 def plot_confusion_matrix(cm, classes, title = 'Confusion matrix', cmap = plt.cm.Blues):
@@ -606,8 +266,6 @@ def plot_confusion_matrix(cm, classes, title = 'Confusion matrix', cmap = plt.cm
     plt.xlabel('Predict label')
 
 
-# In[113]:
-
 
 import itertools
 from sklearn.metrics import confusion_matrix
@@ -626,9 +284,6 @@ plot_confusion_matrix(cnf_matrix,
                      classes=class_names,
                      title = 'Confusion matrix')
 plt.show()
-
-
-# In[ ]:
 
 
 

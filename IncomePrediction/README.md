@@ -22,3 +22,9 @@
 ![NNZFh9.png](https://s1.ax1x.com/2020/06/23/NNZFh9.png)
 
 经过比较，自己训练的模型和sklearn训练的模型相差不大，说明自己训练的模型效果还不错。
+
+对.py文件 做了点修改现在也可以运行，不过不熟悉python语法，不太规范。
+
+![Nh1RFs.png](https://s1.ax1x.com/2020/06/29/Nh1RFs.png)
+
+可以修改242行红框的内容，第一个是mini-batch算法的batchsize，第二个是迭代次数，第三个是学习率。
